@@ -1,0 +1,48 @@
+
+* =Using=
+
+This small tool allows you to what bindings are in effect within a block of
+code.  It is around 15 lines of actual code and has no dependencies.
+
+This was something that I have seen several people request, but often lament
+that it was not available in any language that they knew of.  I thought it would
+be an interesting task to implement this feature in a Common Lisp macro.
+
+Now people can take note of this and no longer say that they don't know of a
+language that has this ability.  They can also remember that a strong macro
+system is a great feature for a language to have.
+
+** Usage
+
+#+BEGIN_SRC lisp
+  (let ((x 1) (y 2))
+    (using (x y)
+      (+ x y)))
+  => 3
+
+  (let ((x 1) (y 2))
+    (using (x)
+      (+ x y)))
+  => Error
+#+END_SRC
+
+A sufficiently smart compiler (like SBCL) can detect violations at compile time.
+
+#+BEGIN_SRC lisp
+  (defun test (x y)
+    (using (x)
+      (+ x y)))
+  ; ...
+  ; caught STYLE-WARNING:
+  ;   The variable Y is defined but never used.
+  ; ...
+  ; caught WARNING:
+  ;   undefined variable: Y
+  ; ...
+#+END_SRC
+
+The compiler issues two warnings.  First, it issues a style warning because it
+detects that the binding of =y= on the function parameter list isn't used.  It
+knows that because it understands that the use of =y= within the =using= scope
+isn't a valid reference to the =y= passed in to the function.  The second
+warning is that the reference to =y= in the =using= body can't be resolved.
